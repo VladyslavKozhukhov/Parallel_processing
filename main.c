@@ -11,7 +11,8 @@ int hight = 1281;//3;// 1920;
 #define fromSlave 2
 #define fromMaster 1
 //char* fileName = "leafA.pgm";
-char* fileName = "/home/vladko/CLionProjects/Mpi_hw1/leaf.pgm";
+//char* fileName = "/home/vladko/CLionProjects/Mpi_hw1/leaf.pgm";
+char* fileName = "./leaf.pgm";
 
 void fillMatrix(int **matrix){
     FILE* file = fopen(fileName, "r");
@@ -53,9 +54,6 @@ void fillMatrix(int **matrix){
             }
             else{
                 if(flag == 1) {
-                    if( counterWidth ==223){
-                        int aaa= 1;
-                    }
                     matrix[counterHight][counterWidth] = num;
 //                    printf("%d(%d) ", num, counterWidth);
 
@@ -72,7 +70,7 @@ void fillMatrix(int **matrix){
     fclose(file);
 }
 void printMatrix(double **matrix){
-    FILE* fileNew = fopen("/home/vladko/CLionProjects/Mpi_hw1/output.pgm", "w");
+    FILE* fileNew = fopen("./output.pgm", "w");
     fprintf(fileNew,"%s \n", "P2");
 
     fprintf(fileNew,"%d %d \n", 2*width,hight);//width [4] [3]
