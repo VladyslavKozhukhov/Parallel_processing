@@ -6,12 +6,12 @@
 #include <ctype.h>
 #include "math.h"
 
-int width =225;// 4;// 1080;
-int hight = 225;//3;// 1920;
+int width = 1920;// 4;// 1080;
+int hight = 1281;//3;// 1920;
 #define fromSlave 2
 #define fromMaster 1
 //char* fileName = "leafA.pgm";
-char* fileName = "/home/vladko/CLionProjects/Mpi_hw1/leafA.pgm";
+char* fileName = "/home/vladko/CLionProjects/Mpi_hw1/leaf.pgm";
 
 void fillMatrix(int **matrix){
     FILE* file = fopen(fileName, "r");
@@ -35,7 +35,7 @@ void fillMatrix(int **matrix){
         else{
             if(counterWidth == width){//} && a == newLine){
 //                matrix[counterHight][counterWidth] = num;
-                printf("%d " ,counterHight);
+//                printf("%d " ,counterHight);
 
                 counterHight++;
                 counterWidth = 0;
@@ -71,11 +71,11 @@ void fillMatrix(int **matrix){
 
     fclose(file);
 }
-void printMatrix(double matrix[ hight][width]){
+void printMatrix(double **matrix){
     FILE* fileNew = fopen("/home/vladko/CLionProjects/Mpi_hw1/output.pgm", "w");
     fprintf(fileNew,"%s \n", "P2");
 
-    fprintf(fileNew,"%d %d \n", width,hight);//width [4] [3]
+    fprintf(fileNew,"%d %d \n", 2*width,hight);//width [4] [3]
     fprintf(fileNew,"%s \n", "255");
     for(int  i = 0; i<  hight  ; i++){
         for(int j = 0; j< width; j++){
@@ -92,17 +92,25 @@ void printMatrix(double matrix[ hight][width]){
 int main(int argc, char * argv[]){
 
     //int matrix[width][hight];
-    int** matrixtmp = (int**)(malloc(sizeof(int*)* (hight+1)));
+    int** matrix = (int**)(malloc(sizeof(int*)* (hight+1)));
     for(int i=0; i < hight; i++){
-        matrixtmp[i] = (int*)(malloc(sizeof(int)*(width+1)));
+        matrix[i] = (int*)(malloc(sizeof(int)*(width+1)));
+    }
+    double** matrixNew = (double**)(malloc(sizeof(double*)* (hight+1)));
+    for(int i=0; i < hight; i++){
+        matrixNew[i] = (double*)(malloc(sizeof(double)*(width+1)));
+    }
+    double** Res = (double**)(malloc(sizeof(double*)* (hight+1)));
+    for(int i=0; i < hight; i++){
+        Res[i] = (double*)(malloc(sizeof(double)*(width+1)));
     }
 //    int** matrixNew = (int**)(malloc(sizeof(int*)* hight));
 //    for(int i=0; i < hight; i++){
 //        matrixNew[i] = (int*)(malloc(sizeof(int)*width));
 //    }
-    int matrix[hight][width];
-    double matrixNew[hight][width];
-    double Res[hight][width];
+//    int matrix[hight][width];
+//    double matrixNew[hight][width];
+//    double Res[hight][width];
 
 
 //      printMatrix(matrix);
@@ -127,22 +135,22 @@ int main(int argc, char * argv[]){
 
 /********Master Task*********/
     if( rank == 0 ) {
-        fillMatrix(matrixtmp);
-        for (int i = 0; i < hight; ++i) {
-            for (int j = 0; j < width; ++j) {
-                matrix[i][j] = matrixtmp[i][j];
-                if (matrix[i][j] == 0)
-                    printf(" [i = %d, j = %d]  \n", i, j);
+        fillMatrix(matrix);
+//        for (int i = 0; i < hight; ++i) {
+//            for (int j = 0; j < width; ++j) {
+//                matrix[i][j] = matrixtmp[i][j];
+//                if (matrix[i][j] == 0)
+//                    printf(" [i = %d, j = %d]  \n", i, j);
+//
+//            }
+//
+//        }
 
-            }
-
-        }
-
-        printf("CHECK %d\n", matrix[0][3]);
         rowNum = hight / numworkers;
-//        printf("rowNum %d
-//        \n", rowNum);
+        printf("\n rowNum = %d\n", rowNum);
         extra = hight % numworkers;
+        printf("\n extra = %d\n", extra);
+
         /* send tasks to workers*/
         for (int dest = 1; dest <= numworkers; ++dest) {
             if (dest != numworkers) {
@@ -153,13 +161,14 @@ int main(int argc, char * argv[]){
                 rows = (dest - 1) * rowNum;
                 limit = rows + rowNum + extra;
             }
+//            printf("\n dest = %d\n", dest);
             MPI_Send(&rows, 1, MPI_INT, dest, fromMaster + 1, MPI_COMM_WORLD);
-//            printf("Send from source to worker%d -  row num:%d\n",dest,rows);
+//           printf("Send from source to worker%d -  row num:%d\n",dest,rows);
             MPI_Send(&limit, 1, MPI_INT, dest, fromMaster + 2, MPI_COMM_WORLD);
 //            printf("Send from source to worker%d -  limit num:%d\n",dest,limit);
-            MPI_Send(&matrix, hight * width, MPI_INT, dest, fromMaster + 3, MPI_COMM_WORLD);
+            MPI_Send(&matrix[0][0], hight * width, MPI_INT, dest, fromMaster + 3, MPI_COMM_WORLD);
 //            printf("Send from source to worker%d - original matrix\n",dest);
-            MPI_Send(&matrixNew, hight * width, MPI_DOUBLE, dest, fromMaster + 4, MPI_COMM_WORLD);
+            MPI_Send(&matrixNew[0][0], hight * width, MPI_DOUBLE, dest, fromMaster + 4, MPI_COMM_WORLD);
 //            printf("Send from source to worker%d - new matrix\n",dest);
 
         }
@@ -168,18 +177,18 @@ int main(int argc, char * argv[]){
         for (int i = 1; i <= numworkers; i++) {
             int source = i;
             MPI_Recv(&rows, 1, MPI_INT, source, fromSlave + 1, MPI_COMM_WORLD, &status);
-//            printf("Recv from worker%d to source -  row number:%d\n",source, rows);
+            printf("Recv from worker%d to source -  row number:%d\n",source, rows);
             MPI_Recv(&limit, 1, MPI_INT, source, fromSlave + 2, MPI_COMM_WORLD, &status);
-//            printf("Recv from worker%d to source -  limit number:%d\n",source, limit);
-            MPI_Recv(matrix, hight * width, MPI_INT, source, fromSlave + 3, MPI_COMM_WORLD, &status);
-//            printf("Recv from worker%d to source -  original matrix\n",source);
-            MPI_Recv(&matrixNew, hight * width, MPI_DOUBLE, source, fromSlave + 4, MPI_COMM_WORLD, &status);
-//            printf("Recv from worker%d to source -  new matrix\n",source);
-            for (int ii = i - 1; ii < limit; ++ii) {
+           printf("Recv from worker%d to source -  limit number:%d\n",source, limit);
+            MPI_Recv(&matrix[0][0], hight * width, MPI_INT, source, fromSlave + 3, MPI_COMM_WORLD, &status);
+            printf("Recv from worker%d to source -  original matrix\n",source);
+            MPI_Recv(&matrixNew[0][0], hight * width, MPI_DOUBLE, source, fromSlave + 4, MPI_COMM_WORLD, &status);
+            printf("Recv from worker%d to source -  new matrix\n",source);
+            for (int ii = rows; ii < limit; ++ii) {
                 for (int j = 0; j < width; ++j) {
+//                    printf("worker %d: i = %d j =%d\n",i,ii,j);
                     Res[ii][j] = matrixNew[ii][j];
-//                    printf("Enter value   %lf from wroker %d\n",matrixNew[ii][j],i);
-//                    printf("Enter matrix  VAL  %d from wroker %d index %d\n",matrix[0][0],i,ii);
+//                    printf("New val %lf Orig val %d\n",Res[ii][j],matrix[ii][j]);
                 }
             }
 //            printf("Limit %d from worker %d \n",limit,i);
@@ -204,10 +213,10 @@ int main(int argc, char * argv[]){
         MPI_Recv(&rows, 1, MPI_INT, 0, fromMaster+1, MPI_COMM_WORLD, &status);
 //        printf("Recv from source to worker%d -  row number:%d\n",rank, rows);
         MPI_Recv(&limit, 1, MPI_INT, 0, fromMaster+2, MPI_COMM_WORLD, &status);
-       // printf("Recv from source to worker%d -  row number:%d\n",rank, limit);
-        MPI_Recv(matrix, hight*width , MPI_INT, 0, fromMaster+3, MPI_COMM_WORLD, &status);
+//        printf("Recv from source to worker%d -  row number:%d\n",rank, limit);
+        MPI_Recv(&matrix[0][0], hight*width , MPI_INT, 0, fromMaster+3, MPI_COMM_WORLD, &status);
 //        printf("Recv from source to worker%d -  original matrix\n",rank);
-        MPI_Recv(&matrixNew, hight*width, MPI_DOUBLE, 0, fromMaster+4, MPI_COMM_WORLD, &status);
+        MPI_Recv(&matrixNew[0][0], hight*width, MPI_DOUBLE, 0, fromMaster+4, MPI_COMM_WORLD, &status);
 //        printf("Recv from source to worker%d -  new matrix\n",rank);
 
 //        matrix[1][1] = -1;
@@ -227,11 +236,14 @@ int main(int argc, char * argv[]){
 //            printf("\n");
 //        }
 
-        int i = rank-1;
-        for(;i < limit;++i){
-            for(int j = 0; j < width;++j ){
-                if(i != 0 && i != hight-1 && j !=0  && j!= width-1){
-                    double y = 1.0/9.0;
+        int i = rows;
+        for(;i < hight;++i){
+            for(int j = 0; j < width;++j ) {
+                if (i >= limit) {
+                    matrixNew[i][j] = 0;
+                } else {
+                    if (i != 0 && i != hight - 1 && j != 0 && j != width - 1) {
+                        double y = 1.0 / 9.0;
 //                    printf("values from matrix: ");
 //                    printf("matrix[%d][%d] = %d \n",i-1,j,matrix[i-1][j]);
 //                    printf("matrix[%d][%d] = %d \n",i-1,j-1,matrix[i-1][j-1]);
@@ -244,25 +256,30 @@ int main(int argc, char * argv[]){
 //                    printf("matrix[%d][%d] = %d \n",i-1,j+1,matrix[i-1][j+1]);
 
 //                    printf("%d %d %d %d %d %d %d %d %d",matrix[i-1][j],matrix[i-1][j-1],matrix[i][j],matrix[i][j+1], matrix[i+1][j+1],matrix[i+1][j],matrix[i][j-1],matrix[i+1][j-1],matrix[i-1][j+1]);
-                    double x = 1.0*matrix[i-1][j]*matrix[i-1][j-1]*matrix[i][j]*matrix[i][j+1]* matrix[i+1][j+1]*matrix[i+1][j]*matrix[i][j-1]*matrix[i+1][j-1]*matrix[i-1][j+1];
+                        double x = 1.0 * matrix[i - 1][j] * matrix[i - 1][j - 1] * matrix[i][j] * matrix[i][j + 1] *
+                                   matrix[i + 1][j + 1] * matrix[i + 1][j] * matrix[i][j - 1] * matrix[i + 1][j - 1] *
+                                   matrix[i - 1][j + 1];
 //                    printf("x %lf and y %lf\n",x,y);
-                    matrixNew[i][j]=pow(x,y);
+                        matrixNew[i][j] = pow(x, y);
 //                    printf("NEW VALUE %lf , old value %d\n",matrixNew[i][j], matrix[i][j]);
-                }
-                else{
-                    matrixNew[i][j]=matrix[i][j];
+                    } else {
+
+                        matrixNew[i][j] = matrix[i][j];
+//                    printf("i=%d j=%d rank %d val %lf Orig val %d\n",i,j,rank,matrixNew[i][j],matrix[i][j]);
+
+                    }
                 }
             }
         }
 //       limit ++;
 
         MPI_Send(&rows, 1, MPI_INT, 0, fromSlave+1,  MPI_COMM_WORLD);
-//        printf("Send from worker%d to source -  row number:%d\n",rank, rows);
+        printf("Send from worker%d to source -  row number:%d\n",rank, rows);
         MPI_Send(&limit, 1, MPI_INT, 0, fromSlave+2,  MPI_COMM_WORLD);
-//        printf("Send from worker%d to source -  limit number:%d\n",rank, limit);
-        MPI_Send(&matrix, hight*width  , MPI_INT, 0, fromSlave+3, MPI_COMM_WORLD);
-//        printf("Send from worker%d to source -  original matrix \n",rank);
-        MPI_Send(&matrixNew, hight*width, MPI_DOUBLE, 0, fromSlave+4, MPI_COMM_WORLD);
+        printf("Send from worker%d to source -  limit number:%d\n",rank, limit);
+        MPI_Send(&matrix[0][0], hight*width  , MPI_INT, 0, fromSlave+3, MPI_COMM_WORLD);
+        printf("Send from worker%d to source -  original matrix \n",rank);
+        MPI_Send(&matrixNew[0][0], hight*width, MPI_DOUBLE, 0, fromSlave+4, MPI_COMM_WORLD);
 //        printf("Send from worker%d to source -  new matrix \n",rank);
     }
 
@@ -270,10 +287,20 @@ int main(int argc, char * argv[]){
 
 
 
-//    for (int j = 0; j < hight; j++) {
-//        free(matrix[j]);
-//    }
-//    free(matrix);
+    for (int j = 0; j < hight+1; j++) {
+        free(matrix[j]);
+    }
+    free(matrix);
+    for (int j = 0; j < hight+1; j++) {
+        free(matrixNew[j]);
+    }
+    free(matrixNew);
+
+    for (int j = 0; j < hight+1; j++) {
+        free(Res[j]);
+    }
+    free(Res);
+
 //
 //    for (int j = 0; j < hight; j++) {
 //        free(matrixNew[j]);
