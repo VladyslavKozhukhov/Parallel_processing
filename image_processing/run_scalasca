@@ -1,0 +1,6 @@
+scalasca -instrument mpicc main.c -lm -g -o  run
+
+scalasca -analyze mpirun  -np 4 ./run
+
+scalasca -examine epik_sor_vn128_sum
+

@@ -1,0 +1,4 @@
+mpecc ­o cpilog main.c ­mpilog
+mpirun ­n 8 ./cpilog
+clog2TOslog2 cpilog.clog2
+jumpshot ./cpilog.slog2
