@@ -56,8 +56,8 @@ void fillMatrix(int **matrix){
     }
     fclose(file);
 }
-void printMatrix(int **matrix){
-    FILE* fileNew = fopen("./output.pgm", "w");
+void printMatrix(int **matrix,char* fileName){
+    FILE* fileNew = fopen(fileName, "w");
     fprintf(fileNew,"%s \n", "P2");
     fprintf(fileNew,"%d %d \n", width,hight);
     fprintf(fileNew,"%s \n", "255");
@@ -69,7 +69,35 @@ void printMatrix(int **matrix){
     }
     fclose(fileNew);
 }
+double serialComputing(int**matrix){
+    int** matrixNew = (int**)(malloc(sizeof(int*)* (hight+1)));
+    for(int i=0; i < hight; i++){
+        matrixNew[i] = (int*)(malloc(sizeof(int)*(width+1)));
+    }
+    double Time_on,Time_off;
+    Time_on = MPI_Wtime(); //timer on
+    for(int i =0;i < hight;++i){
+        for(int j = 0; j < width;++j ) {
+            if (i != 0 && i != hight - 1 && j != 0 && j != width - 1) {
+                double y = 1.0 / 9.0;
+                double x = 1.0 * matrix[i - 1][j] * matrix[i - 1][j - 1] * matrix[i][j] * matrix[i][j + 1] *
+                           matrix[i + 1][j + 1] * matrix[i + 1][j] * matrix[i][j - 1] * matrix[i + 1][j - 1] *
+                           matrix[i - 1][j + 1];
+                matrixNew[i][j] =(int) pow(x, y);
+            } else {
+                matrixNew[i][j] = matrix[i][j];
+            }
+        }
+    }
+    Time_off = MPI_Wtime(); //timer on
 
+    printMatrix(matrixNew,"./serial_output.pgm");
+    for (int j = 0; j < hight+1; j++) {
+        free(matrixNew[j]);
+    }
+    free(matrixNew);
+    return (Time_off-Time_on);
+}
 int main(int argc, char * argv[]){
 
     int** matrix = (int**)(malloc(sizeof(int*)* (hight+1)));
@@ -84,8 +112,7 @@ int main(int argc, char * argv[]){
     for(int i=0; i < hight; i++){
         Res[i] = (int*)(malloc(sizeof(int)*(width+1)));
     }
-    double Time_on, Time_off;
-
+    double Time_on, Time_off,Time_serial;
     int  numtasks,numworkers, rank, len, rc,rowNum,limit,extra,rows;
     char hostname[MPI_MAX_PROCESSOR_NAME];
     srand ( time(NULL) );
@@ -107,6 +134,8 @@ int main(int argc, char * argv[]){
 /********Master Task*********/
     if( rank == 0 ) {
         fillMatrix(matrix);
+        Time_serial = serialComputing(matrix);
+
         rowNum = hight / numworkers;
         extra = hight % numworkers;
         /* send tasks to workers*/
@@ -152,8 +181,10 @@ int main(int argc, char * argv[]){
 
         /* Print results */
         Time_off=MPI_Wtime();
-        printf("Time with %d is :%lf\n",numworkers,Time_off - Time_on);
-        printMatrix(Res);
+        printf("Parallel time with %d is :%lf\n",numworkers,Time_off - Time_on);
+        printf("Serial time with %d is :%lf\n",numworkers,Time_serial);
+
+        printMatrix(Res,"./output.pgm");
 
     }
 
