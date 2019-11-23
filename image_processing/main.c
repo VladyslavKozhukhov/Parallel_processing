@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "math.h"
-
+#include <time.h>
 int width = 1920;
 int hight = 1281;
 #define fromSlave 2
@@ -84,11 +84,11 @@ int main(int argc, char * argv[]){
     for(int i=0; i < hight; i++){
         Res[i] = (int*)(malloc(sizeof(int)*(width+1)));
     }
-
+    double Time_on, Time_off;
 
     int  numtasks,numworkers, rank, len, rc,rowNum,limit,extra,rows;
     char hostname[MPI_MAX_PROCESSOR_NAME];
-
+    srand ( time(NULL) );
     // initialize MPI
     MPI_Init(&argc,&argv);
     // get number of tasks
@@ -110,6 +110,7 @@ int main(int argc, char * argv[]){
         rowNum = hight / numworkers;
         extra = hight % numworkers;
         /* send tasks to workers*/
+        Time_on = MPI_Wtime(); //timer on
         for (int dest = 1; dest <= numworkers; ++dest) {
             if (dest != numworkers) {
                 rows = (dest - 1) * rowNum;
@@ -150,7 +151,8 @@ int main(int argc, char * argv[]){
         }
 
         /* Print results */
-
+        Time_off=MPI_Wtime();
+        printf("Time with %d is :%lf\n",numworkers,Time_off - Time_on);
         printMatrix(Res);
 
     }
