@@ -1,3 +1,3 @@
-ne.jpg: -colorspace gray -compress none -depth 8 plane.pgm
+convert picname.jpg: -colorspace gray -compress none -depth 8 plane.pgm
 mpicc main.c -lm -g -o  run
  mpirun -np 3 ./run 
