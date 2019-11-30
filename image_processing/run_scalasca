@@ -4,3 +4,10 @@ scalasca -analyze mpirun  -np 4 ./run
 
 scalasca -examine epik_sor_vn128_sum
 
+
+
+global vars:
+export SCOREP_CONFIG=/opt/scorep/bin/scorep-config
+export scorep=/opt/scorep/bin/scorep
+export DUMPER=/opt/cubelib/bin/cube_dump
+export VIEWER=/opt/cubegui/bin/cube
