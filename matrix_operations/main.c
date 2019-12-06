@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "mpi/mpi.h"
-//#include "mpi.h"
+//#include "mpi/mpi.h"
+#include "mpi.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
