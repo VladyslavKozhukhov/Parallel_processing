@@ -96,7 +96,7 @@ double start_time = omp_get_wtime();
 
             //  printf("WT:%lf steps:%d x:%lf y:%lf \n", wt,steps,x,y);
             //printf("%lf %lf %lf %lf %lf %lf %lf %lf %lf\n ",ut,us,dx,dy,x1,vs,x2,w,chk);
-	#pragma omp parallel for reduction(+:wt,steps) private(ut,us,dx,dy,x1,vs,x2,w,chk)
+	#pragma omp parallel for reduction(+:wt,steps)firstprivate(ut,us,dx,dy,x1,vs,x2,w,chk)
             for ( k = 0; k < N; k++ )
             {
                 x1  = x;
