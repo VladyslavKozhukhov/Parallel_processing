@@ -1,0 +1,5 @@
+S=C=A=N: Sat Nov 30 04:30:52 2019: Collect start
+/usr/bin/mpirun -np 2 ./run
+Parallel time with 1 is :0.783097
+Serial time with 1 is :0.763621
+S=C=A=N: Sat Nov 30 04:30:56 2019: Collect done (status=0) 4s

@@ -6,8 +6,8 @@
 #include <ctype.h>
 #include "math.h"
 #include <time.h>
-int N = 3;
-
+int width = 1920;
+int hight = 1281;
 #define fromSlave 2
 #define fromMaster 1
 char* fileName = "./leaf.pgm";
