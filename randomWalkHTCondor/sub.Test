@@ -1,0 +1,10 @@
+  Universe       = vanilla
+  Executable     = test
+  Arguments          = $(Process)
+  Output         = test.out
+  Initialdir     =run$(Process)
+  Log            = test.log
+  Error          = test.error
+
+  Queue 50
+

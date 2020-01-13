@@ -1,0 +1,4 @@
+gcc -o test main.c
+diff run0/test.out run2/test.out
+condor_q kozhukho
+condor_submit sub.test
