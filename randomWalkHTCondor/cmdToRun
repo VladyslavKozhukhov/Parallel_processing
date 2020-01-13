@@ -1,4 +1,8 @@
-gcc -o test main.c
-diff run0/test.out run2/test.out
-condor_q kozhukho
+gcc -o test run.c
+python creat50folders.py
 condor_submit sub.test
+condor_q kozhukho
+python histogram.py
+
+diff run0/test.out run2/test.out
+
