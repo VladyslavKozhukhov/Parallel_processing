@@ -19,6 +19,10 @@ for i in range(0,50):
 print(len(total))
 
 
+#total[0]=float((total[0].split("["))[1])
+#total[-1]=float((total[-1].split("]"))[0])
 num_bins = 20
+total=[float(i) for i in total]
 n, bins, patches = plt.hist(total, num_bins, facecolor='blue', alpha=0.5)
 plt.show()
+
